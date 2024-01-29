@@ -58,6 +58,7 @@ private:
 
   edm::EDGetTokenT<VertexCollection> vtx_token_;
   edm::EDGetTokenT<CandidateView> pfcand_token_;
+  edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> track_builder_token_;
 
   std::vector<edm::Handle<edm::View<pat::Jet>>> jets_;
   edm::Handle<VertexCollection> vtxs_;
@@ -72,7 +73,9 @@ JetConstituentTableProducer::JetConstituentTableProducer(const edm::ParameterSet
     : name_(iConfig.getParameter<std::string>("name")),
       check_indices_(iConfig.getParameter<bool>("check_indices")),
       vtx_token_(consumes<VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"))),
-      pfcand_token_(consumes<CandidateView>(iConfig.getParameter<edm::InputTag>("pf_candidates"))) {
+      pfcand_token_(consumes<CandidateView>(iConfig.getParameter<edm::InputTag>("pf_candidates"))),
+      track_builder_token_(
+          esConsumes<TransientTrackBuilder, TransientTrackRecord>(edm::ESInputTag("", "TransientTrackBuilder"))) {
   const auto &pset = iConfig.getParameterSet("jets");
   jet_names_ = pset.getParameterNames();
   ncols_ = jet_names_.size();
@@ -111,7 +114,7 @@ void JetConstituentTableProducer::produce(edm::Event &iEvent, const edm::EventSe
   iEvent.getByToken(vtx_token_, vtxs_);
   if (!vtxs_->empty()) {
     iEvent.getByToken(pfcand_token_, pfcands_);
-    iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", track_builder_);
+    track_builder_ = iSetup.getHandle(track_builder_token_);
 
     std::vector<Key> kvec;                   // stores cand keys in an ordered vector
     std::unordered_set<Key> kset;            // used to check for duplicates -- not adding to kvec if already in
@@ -217,18 +220,12 @@ void JetConstituentTableProducer::produce(edm::Event &iEvent, const edm::EventSe
   for (unsigned ic = 0; ic < ncols_; ++ic) {
     auto suffix = "_" + jet_names_[ic];
     auto doc = "(" + jet_names_[ic] + ")";
-    candTable->addColumn<float>(
-        "btagEtaRel" + suffix, btagEtaRel[ic], "btagEtaRel" + doc, nanoaod::FlatTable::FloatColumn, 10);
-    candTable->addColumn<float>(
-        "btagPtRatio" + suffix, btagPtRatio[ic], "btagPtRatio" + doc, nanoaod::FlatTable::FloatColumn, 10);
-    candTable->addColumn<float>(
-        "btagPParRatio" + suffix, btagPParRatio[ic], "btagPParRatio" + doc, nanoaod::FlatTable::FloatColumn, 10);
-    candTable->addColumn<float>(
-        "btagSip3dVal" + suffix, btagSip3dVal[ic], "btagSip3dVal" + doc, nanoaod::FlatTable::FloatColumn, 10);
-    candTable->addColumn<float>(
-        "btagSip3dSig" + suffix, btagSip3dSig[ic], "btagSip3dSig" + doc, nanoaod::FlatTable::FloatColumn, 10);
-    candTable->addColumn<float>(
-        "btagJetDistVal" + suffix, btagJetDistVal[ic], "btagJetDistVal" + doc, nanoaod::FlatTable::FloatColumn, 10);
+    candTable->addColumn<float>("btagEtaRel" + suffix, btagEtaRel[ic], "btagEtaRel" + doc, 10);
+    candTable->addColumn<float>("btagPtRatio" + suffix, btagPtRatio[ic], "btagPtRatio" + doc, 10);
+    candTable->addColumn<float>("btagPParRatio" + suffix, btagPParRatio[ic], "btagPParRatio" + doc, 10);
+    candTable->addColumn<float>("btagSip3dVal" + suffix, btagSip3dVal[ic], "btagSip3dVal" + doc, 10);
+    candTable->addColumn<float>("btagSip3dSig" + suffix, btagSip3dSig[ic], "btagSip3dSig" + doc, 10);
+    candTable->addColumn<float>("btagJetDistVal" + suffix, btagJetDistVal[ic], "btagJetDistVal" + doc, 10);
   }
 
   iEvent.put(std::move(candTable), name_);
@@ -244,8 +241,7 @@ void JetConstituentTableProducer::produce(edm::Event &iEvent, const edm::EventSe
     xrefTable->addColumn<int>("candIdx",
                               dauIdx[ic],
                               "Indices of the jet constitutes in the PFCand table. Use nPFCands in the jet table to "
-                              "separate these indices for each jet.",
-                              nanoaod::FlatTable::IntColumn);
+                              "separate these indices for each jet.");
     iEvent.put(std::move(xrefTable), xref_table_names_[ic]);
   }
 }

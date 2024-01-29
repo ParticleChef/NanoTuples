@@ -70,6 +70,7 @@ private:
   edm::EDGetTokenT<edm::ValueMap<float>> puppi_value_map_token_;
   edm::EDGetTokenT<edm::ValueMap<int>> pvasq_value_map_token_;
   edm::EDGetTokenT<edm::Association<VertexCollection>> pvas_token_;
+  edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> track_builder_token_;
 
   edm::Handle<VertexCollection> vtxs_;
   edm::Handle<SVCollection> svs_;
@@ -87,38 +88,90 @@ private:
 };
 
 const std::vector<std::string> ParticleTransformerAK8TagInfoProducer::charged_particle_features_{
-    "cpfcandlt_puppiw",        "cpfcandlt_hcalFrac",       "cpfcandlt_VTX_ass",      "cpfcandlt_lostInnerHits",
-    "cpfcandlt_quality",       "cpfcandlt_charge",         "cpfcandlt_isEl",         "cpfcandlt_isMu",
-    "cpfcandlt_isChargedHad",  "cpfcandlt_phirel",
-    "cpfcandlt_etarel",        "cpfcandlt_deltaR",         "cpfcandlt_abseta",       "cpfcandlt_ptrel_log",
-    "cpfcandlt_erel_log",      "cpfcandlt_pt_log",         "cpfcandlt_drminsv",      "cpfcandlt_drsubjet1",
-    "cpfcandlt_drsubjet2",     "cpfcandlt_normchi2",       "cpfcandlt_dz",           "cpfcandlt_dzsig",
-    "cpfcandlt_dxy",           "cpfcandlt_dxysig",         "cpfcandlt_dptdpt",       "cpfcandlt_detadeta",
-    "cpfcandlt_dphidphi",      "cpfcandlt_dxydxy",         "cpfcandlt_dzdz",         "cpfcandlt_dxydz",
-    "cpfcandlt_dphidxy",       "cpfcandlt_dlambdadz",      "cpfcandlt_btagEtaRel",   "cpfcandlt_btagPtRatio",
-    "cpfcandlt_btagPParRatio", "cpfcandlt_btagSip2dVal",   "cpfcandlt_btagSip2dSig", "cpfcandlt_btagSip3dVal",
-    "cpfcandlt_btagSip3dSig",  "cpfcandlt_btagJetDistVal", "cpfcandlt_mask",         "cpfcandlt_pt_log_nopuppi",
-    "cpfcandlt_e_log_nopuppi", "cpfcandlt_ptrel",          "cpfcandlt_erel",
+    "cpfcandlt_puppiw",
+    "cpfcandlt_hcalFrac",
+    "cpfcandlt_VTX_ass",
+    "cpfcandlt_lostInnerHits",
+    "cpfcandlt_quality",
+    "cpfcandlt_charge",
+    "cpfcandlt_isEl",
+    "cpfcandlt_isMu",
+    "cpfcandlt_isChargedHad",
+    "cpfcandlt_phirel",
+    "cpfcandlt_etarel",
+    "cpfcandlt_deltaR",
+    "cpfcandlt_abseta",
+    "cpfcandlt_ptrel_log",
+    "cpfcandlt_erel_log",
+    "cpfcandlt_pt_log",
+    "cpfcandlt_drminsv",
+    "cpfcandlt_drsubjet1",
+    "cpfcandlt_drsubjet2",
+    "cpfcandlt_normchi2",
+    "cpfcandlt_dz",
+    "cpfcandlt_dzsig",
+    "cpfcandlt_dxy",
+    "cpfcandlt_dxysig",
+    "cpfcandlt_dptdpt",
+    "cpfcandlt_detadeta",
+    "cpfcandlt_dphidphi",
+    "cpfcandlt_dxydxy",
+    "cpfcandlt_dzdz",
+    "cpfcandlt_dxydz",
+    "cpfcandlt_dphidxy",
+    "cpfcandlt_dlambdadz",
+    "cpfcandlt_btagEtaRel",
+    "cpfcandlt_btagPtRatio",
+    "cpfcandlt_btagPParRatio",
+    "cpfcandlt_btagSip2dVal",
+    "cpfcandlt_btagSip2dSig",
+    "cpfcandlt_btagSip3dVal",
+    "cpfcandlt_btagSip3dSig",
+    "cpfcandlt_btagJetDistVal",
+    "cpfcandlt_mask",
+    "cpfcandlt_pt_log_nopuppi",
+    "cpfcandlt_e_log_nopuppi",
+    "cpfcandlt_ptrel",
+    "cpfcandlt_erel",
     "cpfcandlt_isLostTrack",
-    "cpfcandlt_pixelBarrelLayersWithMeasurement", "cpfcandlt_pixelEndcapLayersWithMeasurement",
-    "cpfcandlt_stripTECLayersWithMeasurement",    "cpfcandlt_stripTIBLayersWithMeasurement",
-    "cpfcandlt_stripTIDLayersWithMeasurement",    "cpfcandlt_stripTOBLayersWithMeasurement",
-    "cpfcandlt_px",            "cpfcandlt_py",             "cpfcandlt_pz",           "cpfcandlt_energy"};
+    "cpfcandlt_pixelBarrelLayersWithMeasurement",
+    "cpfcandlt_pixelEndcapLayersWithMeasurement",
+    "cpfcandlt_stripTECLayersWithMeasurement",
+    "cpfcandlt_stripTIBLayersWithMeasurement",
+    "cpfcandlt_stripTIDLayersWithMeasurement",
+    "cpfcandlt_stripTOBLayersWithMeasurement",
+    "cpfcandlt_px",
+    "cpfcandlt_py",
+    "cpfcandlt_pz",
+    "cpfcandlt_energy"};
 
 const std::vector<std::string> ParticleTransformerAK8TagInfoProducer::neutral_particle_features_{
-    "npfcand_puppiw",        "npfcand_hcalFrac",       "npfcand_isGamma",      "npfcand_isNeutralHad",
+    "npfcand_puppiw",
+    "npfcand_hcalFrac",
+    "npfcand_isGamma",
+    "npfcand_isNeutralHad",
     "npfcand_phirel",
-    "npfcand_etarel",        "npfcand_deltaR",         "npfcand_abseta",       "npfcand_ptrel_log",
-    "npfcand_erel_log",      "npfcand_pt_log",         "npfcand_mask",         "npfcand_pt_log_nopuppi",
-    "npfcand_e_log_nopuppi", "npfcand_ptrel",          "npfcand_erel",
-    "npfcand_px",            "npfcand_py",             "npfcand_pz",           "npfcand_energy"};
+    "npfcand_etarel",
+    "npfcand_deltaR",
+    "npfcand_abseta",
+    "npfcand_ptrel_log",
+    "npfcand_erel_log",
+    "npfcand_pt_log",
+    "npfcand_mask",
+    "npfcand_pt_log_nopuppi",
+    "npfcand_e_log_nopuppi",
+    "npfcand_ptrel",
+    "npfcand_erel",
+    "npfcand_px",
+    "npfcand_py",
+    "npfcand_pz",
+    "npfcand_energy"};
 
 const std::vector<std::string> ParticleTransformerAK8TagInfoProducer::sv_features_{
-    "sv_mask", "sv_ptrel",     "sv_erel",     "sv_phirel", "sv_etarel",       "sv_deltaR",  "sv_abseta",
-    "sv_mass", "sv_ptrel_log", "sv_erel_log", "sv_pt_log", "sv_pt",           "sv_ntracks", "sv_normchi2",
-    "sv_dxy",  "sv_dxysig",    "sv_d3d",      "sv_d3dsig", "sv_costhetasvpv",
-    "sv_px",   "sv_py",        "sv_pz",       "sv_energy"
-};
+    "sv_mask",         "sv_ptrel",    "sv_erel",      "sv_phirel",   "sv_etarel", "sv_deltaR",
+    "sv_abseta",       "sv_mass",     "sv_ptrel_log", "sv_erel_log", "sv_pt_log", "sv_pt",
+    "sv_ntracks",      "sv_normchi2", "sv_dxy",       "sv_dxysig",   "sv_d3d",    "sv_d3dsig",
+    "sv_costhetasvpv", "sv_px",       "sv_py",        "sv_pz",       "sv_energy"};
 
 ParticleTransformerAK8TagInfoProducer::ParticleTransformerAK8TagInfoProducer(const edm::ParameterSet &iConfig)
     : jet_radius_(iConfig.getParameter<double>("jet_radius")),
@@ -137,7 +190,9 @@ ParticleTransformerAK8TagInfoProducer::ParticleTransformerAK8TagInfoProducer(con
       pfcand_token_(consumes<CandidateView>(iConfig.getParameter<edm::InputTag>("pf_candidates"))),
       lt_token_(consumes<CandidateView>(iConfig.getParameter<edm::InputTag>("lost_tracks"))),
       use_puppi_value_map_(false),
-      use_pvasq_value_map_(false) {
+      use_pvasq_value_map_(false),
+      track_builder_token_(
+          esConsumes<TransientTrackBuilder, TransientTrackRecord>(edm::ESInputTag("", "TransientTrackBuilder"))) {
   const auto &puppi_value_map_tag = iConfig.getParameter<edm::InputTag>("puppi_value_map");
   if (!puppi_value_map_tag.label().empty()) {
     puppi_value_map_token_ = consumes<edm::ValueMap<float>>(puppi_value_map_tag);
@@ -196,8 +251,7 @@ void ParticleTransformerAK8TagInfoProducer::produce(edm::Event &iEvent, const ed
   iEvent.getByToken(sv_token_, svs_);
   iEvent.getByToken(pfcand_token_, pfcands_);
   iEvent.getByToken(lt_token_, lts_);
-
-  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", track_builder_);
+  track_builder_ = iSetup.getHandle(track_builder_token_);
 
   if (use_puppi_value_map_) {
     iEvent.getByToken(puppi_value_map_token_, puppi_value_map_);
@@ -310,7 +364,7 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
     if (cand->charge() != 0) {
       cpfPtrs.push_back(cand);
       isLostTrackMap[cand.key()] = false;
-    }else {
+    } else {
       npfPtrs.push_back(cand);
     }
   }
@@ -320,7 +374,7 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
     if (reco::deltaR(*cand, jet) < jet_radius_) {
       cpfPtrs.push_back(cand);
       isLostTrackMap[cand.key()] = true;
-      puppi_wgt_cache[cand.key()] = 1.; // set puppi weight to 1 for lost tracks
+      puppi_wgt_cache[cand.key()] = 1.;  // set puppi weight to 1 for lost tracks
     }
   }
 
@@ -343,16 +397,14 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
   } else {
     if (use_puppiP4_) {
       // sort by Puppi-weighted pt
-      std::sort(cpfPtrs.begin(),
-                cpfPtrs.end(),
-                [&puppi_wgt_cache](const reco::CandidatePtr &a, const reco::CandidatePtr &b) {
-                  return puppi_wgt_cache.at(a.key()) * a->pt() > puppi_wgt_cache.at(b.key()) * b->pt();
-                });
-      std::sort(npfPtrs.begin(),
-                npfPtrs.end(),
-                [&puppi_wgt_cache](const reco::CandidatePtr &a, const reco::CandidatePtr &b) {
-                  return puppi_wgt_cache.at(a.key()) * a->pt() > puppi_wgt_cache.at(b.key()) * b->pt();
-                });
+      std::sort(
+          cpfPtrs.begin(), cpfPtrs.end(), [&puppi_wgt_cache](const reco::CandidatePtr &a, const reco::CandidatePtr &b) {
+            return puppi_wgt_cache.at(a.key()) * a->pt() > puppi_wgt_cache.at(b.key()) * b->pt();
+          });
+      std::sort(
+          npfPtrs.begin(), npfPtrs.end(), [&puppi_wgt_cache](const reco::CandidatePtr &a, const reco::CandidatePtr &b) {
+            return puppi_wgt_cache.at(a.key()) * a->pt() > puppi_wgt_cache.at(b.key()) * b->pt();
+          });
     } else {
       // sort by original pt (not Puppi-weighted)
       std::sort(cpfPtrs.begin(), cpfPtrs.end(), [](const auto &a, const auto &b) { return a->pt() > b->pt(); });
@@ -404,7 +456,8 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
       fts.fill("cpfcandlt_dz", ip_sign * packed_cand->dz());
       fts.fill("cpfcandlt_dxy", ip_sign * packed_cand->dxy());
       fts.fill("cpfcandlt_dzsig", packed_cand->bestTrack() ? ip_sign * packed_cand->dz() / packed_cand->dzError() : 0);
-      fts.fill("cpfcandlt_dxysig", packed_cand->bestTrack() ? ip_sign * packed_cand->dxy() / packed_cand->dxyError() : 0);
+      fts.fill("cpfcandlt_dxysig",
+               packed_cand->bestTrack() ? ip_sign * packed_cand->dxy() / packed_cand->dxyError() : 0);
 
     } else if (reco_cand) {
       // get vertex association quality
@@ -535,16 +588,15 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
       fts.fill("cpfcandlt_btagSip3dSig", 0);
       fts.fill("cpfcandlt_btagJetDistVal", 0);
 
-      fts.fill("cpfcandlt_pixelBarrelLayersWithMeasurement", 0); 
-      fts.fill("cpfcandlt_pixelEndcapLayersWithMeasurement", 0); 
-      fts.fill("cpfcandlt_stripTIBLayersWithMeasurement", 0); 
-      fts.fill("cpfcandlt_stripTIDLayersWithMeasurement", 0); 
-      fts.fill("cpfcandlt_stripTOBLayersWithMeasurement", 0); 
-      fts.fill("cpfcandlt_stripTECLayersWithMeasurement", 0); 
+      fts.fill("cpfcandlt_pixelBarrelLayersWithMeasurement", 0);
+      fts.fill("cpfcandlt_pixelEndcapLayersWithMeasurement", 0);
+      fts.fill("cpfcandlt_stripTIBLayersWithMeasurement", 0);
+      fts.fill("cpfcandlt_stripTIDLayersWithMeasurement", 0);
+      fts.fill("cpfcandlt_stripTOBLayersWithMeasurement", 0);
+      fts.fill("cpfcandlt_stripTECLayersWithMeasurement", 0);
     }
 
     // pixel hits pattern variables
-
   }
 
   // fill neutral candidate features
@@ -571,7 +623,6 @@ void ParticleTransformerAK8TagInfoProducer::fillParticleFeatures(DeepBoostedJetF
       fts.fill("npfcand_isNeutralHad", std::abs(packed_cand->pdgId()) == 130);
 
     } else if (reco_cand) {
-
       fts.fill("npfcand_hcalFrac", reco_cand->hcalEnergy() / (reco_cand->ecalEnergy() + reco_cand->hcalEnergy()));
 
       fts.fill("npfcand_isGamma", std::abs(reco_cand->pdgId()) == 22);

@@ -7,205 +7,86 @@ Custom NanoAOD ntuple producers with additional boosted jet taggers and their PF
 - [NanoTuples](#nanotuples)
     - [Version](#version)
     - [Setup](#setup)
-        - [Set up CMSSW](#set-up-cmssw)
-        - [Get customized NanoAOD producers](#get-customized-nanoaod-producers)
-        - [Compile](#compile)
-        - [Test](#test)
     - [Production](#production)
 
 <!-- /TOC -->
 
-------
+---
 
 ## Version
 
-The current version is based on [NanoAODv9](https://gitlab.cern.ch/cms-nanoAOD/nanoaod-doc/-/wikis/Releases/NanoAODv9).
+The current version is based on the Run2UL config in CMSSW_13_3_1_patch1, so it is a mixture of [NanoAODv9](https://gitlab.cern.ch/cms-nanoAOD/nanoaod-doc/-/wikis/Releases/NanoAODv9) and [NanoAODv13](https://gitlab.cern.ch/cms-nanoAOD/nanoaod-doc/-/wikis/Releases/NanoAODv13).
 
 Customizations:
 
-- AK15 jets w/ ParticleNet-MD (V02d, EOY training)
-- [*not enabled by default*] PFCands of AK15 jets
+- Switched to Puppi jets for the AK4 jet collection.
+- Add the Run2UL version of ParticleNetAK4 (trained on CHS jets) on AK4 Puppi jets.
+- Add the new Run3 ParticleNetAK4 tagger (with regression) and the RobustParTAK4 tagger.
+<!-- - Add the new Run3 ParticleNetAK4-based tau taggers. -->
+- Store all ParticleNet raw scores for AK8 jets.
+- Add new GlobalParT stage-2 for AK8 jets.
+- Add new GlobalParT stage-2 for AK15 jets.
+- AK15 jets w/ ParticleNet-MD (V02d, EOY training) and mass regression (V01c, EOY training).
 
-------
+---
 
 ## Setup
 
-### Set up CMSSW
-
 ```bash
-cmsrel CMSSW_10_6_31
-cd CMSSW_10_6_31/src
+cmsrel CMSSW_13_3_1_patch1
+cd CMSSW_13_3_1_patch1/src
 cmsenv
+
+# merge custom CMSSW branch for AK4Puppi
+git cms-merge-topic -u hqucms:dev/CMSSW_13_3_1_patch1/NanoAOD-puppiAK4
+
+# add custom repo for AK15/AK8 ParTv2
+git clone https://github.com/hqucms/NanoTuples.git PhysicsTools/NanoTuples -b dev/ParTv2/CMSSW_13_3_1_patch1
+
+# compile
+scram b -j8
 ```
-
-### Get customized NanoAOD producers
-
-```bash
-git clone https://github.com/colizz/NanoTuples.git PhysicsTools/NanoTuples -b dev-ak15tagger-UL
-```
-
-### Use an updated onnxruntime package (before compiling the code)
-
-```bash
-./PhysicsTools/NanoTuples/scripts/install_onnxruntime.sh
-```
-
-### Get the ParT model
-
-```bash
-wget https://coli.web.cern.ch/coli/tmp/.230626-003937_partv2_model/ak15/V02/model.onnx -O $CMSSW_BASE/src/PhysicsTools/NanoTuples/data/InclParticleTransformer-MD/ak15/V02/model.onnx
-```
-
-### Compile
-
-```bash
-scram b -j16
-```
-
-### Test
-
-<!-- 
-MC (UL16, MiniAODv1):
-
-```bash
-cmsDriver.py test_nanoTuples_mc2016 -n 1000 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_mcRun2_asymptotic_v15 --step NANO --nThreads 1 --era Run2_2016,run2_nanoAOD_106Xv1 --customise PhysicsTools/NanoTuples/nanoTuples_cff.nanoTuples_customizeMC --filein /store/mc/RunIISummer16MiniAODv3/TTToSemilepton_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v2/80000/FEC61D42-F5F5-E811-8435-001E67A4061D.root --fileout file:nano_mc2016.root --customise_commands "process.options.wantSummary = cms.untracked.bool(True)" >& test_mc2016.log &
-
-less +F test_mc2016.log
-```
-
-Data (UL16, MiniAODv1):
-
-```bash
-cmsDriver.py test_nanoTuples_data2016 -n 1000 --data --eventcontent NANOAOD --datatier NANOAOD --conditions 106X_dataRun2_v32 --step NANO --nThreads 1 --era Run2_2016,run2_nanoAOD_106Xv1 --customise PhysicsTools/NanoTuples/nanoTuples_cff.nanoTuples_customizeData --filein /store/data/Run2016H/MET/MINIAOD/17Jul2018-v2/00000/0A0B71F7-75B8-E811-BAB7-0425C5DE7BE4.root --fileout file:nano_data2016.root --customise_commands "process.options.wantSummary = cms.untracked.bool(True)" >& test_data2016.log &
-
-less +F test_data2016.log
-```
-
-
-MC (UL17, MiniAODv1):
-
-```bash
-cmsDriver.py test_nanoTuples_mc2017 -n 1000 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_mc2017_realistic_v8 --step NANO --nThreads 1 --era Run2_2017,run2_nanoAOD_106Xv1 --customise PhysicsTools/NanoTuples/nanoTuples_cff.nanoTuples_customizeMC --filein /store/mc/RunIIFall17MiniAODv2/DY1JetsToLL_M-50_LHEZpT_150-250_TuneCP5_13TeV-amcnloFXFX-pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/60000/F492A0D0-3F56-E811-9387-FA163EB32A35.root --fileout file:nano_mc2017.root --customise_commands "process.options.wantSummary = cms.untracked.bool(True)" >& test_mc2017.log &
-
-less +F test_mc2017.log
-```
-
-Data (UL17, MiniAODv1):
-
-```bash
-cmsDriver.py test_nanoTuples_data2017 -n 1000 --data --eventcontent NANOAOD --datatier NANOAOD --conditions 106X_dataRun2_v32 --step NANO --nThreads 1 --era Run2_2017,run2_nanoAOD_106Xv1 --customise PhysicsTools/NanoTuples/nanoTuples_cff.nanoTuples_customizeData --filein /store/data/Run2017F/SingleElectron/MINIAOD/31Mar2018-v1/90002/EC099452-C938-E811-9922-0CC47A7C354C.root --fileout file:nano_data2017.root --customise_commands "process.options.wantSummary = cms.untracked.bool(True)" >& test_data2017.log &
-
-less +F test_data2017.log
-``` 
--->
-
-
-MC (UL18, MiniAODv2):
-
-```bash
-cmsDriver.py --python_filename test_nanoTuples_mc2018.py --eventcontent NANOAODSIM --customise PhysicsTools/NanoTuples/nanoTuples_cff.nanoTuples_customizeMC --datatier NANOAODSIM --fileout file:nano_mc2018.root --conditions 106X_upgrade2018_realistic_v16_L1v1 --step NANO --filein /store/mc/RunIISummer20UL18MiniAODv2/WplusH_HToCC_WToLNu_M-125_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/2520000/A4FFC5A7-79DF-FE4B-A515-1F3EA0513509.root --era Run2_2018,run2_nanoAOD_106Xv2 --mc -n 50
-```
-
-Data (UL18, MiniAODv2):
-
-```bash
-cmsDriver.py --python_filename test_nanoTuples_data2018.py --eventcontent NANOAOD --customise PhysicsTools/NanoTuples/nanoTuples_cff.nanoTuples_customizeData --datatier NANOAOD --fileout file:nano_data2018.root --conditions 106X_dataRun2_v37 --step NANO --filein /store/data/Run2018A/SingleMuon/MINIAOD/UL2018_MiniAODv2_GT36-v1/2820000/000EE25A-A8E8-1444-8A0B-0DBEBE5634FB.root --era Run2_2018,run2_nanoAOD_106Xv2 --data -n 50
-```
-
-<!--
-------
 
 ## Production
 
 **Step 0**: switch to the crab production directory and set up grid proxy, CRAB environment, etc.
 
 ```bash
-cd $CMSSW_BASE/src/PhysicsTools/NanoTuples/crab
 # set up grid proxy
 voms-proxy-init -rfc -voms cms --valid 168:00
 # set up CRAB env (must be done after cmsenv)
 source /cvmfs/cms.cern.ch/common/crab-setup.sh
 ```
 
-**Step 1**: generate the python config file with `cmsDriver.py` with the following commands:
-
-
-MC (UL16, Run B-F, pre-VFP/APV, MiniAODv1):
-
-```bash
-cmsDriver.py mc2016 -n -1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_mcRun2_asymptotic_preVFP_v9 --step NANO --nThreads 1 --era Run2_2016,run2_nanoAOD_106Xv1 --customise PhysicsTools/NanoTuples/nanoTuples_cff.nanoTuples_customizeMC --filein file:step-1.root --fileout file:nano.root --no_exec
-```
-
-MC (UL16, Run G-H, post-VFP, MiniAODv1):
-
-```bash
-cmsDriver.py mc2016 -n -1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_mcRun2_asymptotic_v15 --step NANO --nThreads 1 --era Run2_2016,run2_nanoAOD_106Xv1 --customise PhysicsTools/NanoTuples/nanoTuples_cff.nanoTuples_customizeMC --filein file:step-1.root --fileout file:nano.root --no_exec
-```
-
-Data (UL16, MiniAODv1):
-
-```bash
-cmsDriver.py data2016 -n -1 --data --eventcontent NANOAOD --datatier NANOAOD --conditions 106X_dataRun2_v32 --step NANO --nThreads 1 --era Run2_2016,run2_nanoAOD_106Xv1 --customise PhysicsTools/NanoTuples/nanoTuples_cff.nanoTuples_customizeData --filein file:step-1.root --fileout file:nano.root --no_exec
-```
-
-
-MC (UL17, MiniAODv1):
-
-```bash
-cmsDriver.py mc2017 -n -1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_mc2017_realistic_v8 --step NANO --nThreads 1 --era Run2_2017,run2_nanoAOD_106Xv1 --customise PhysicsTools/NanoTuples/nanoTuples_cff.nanoTuples_customizeMC --filein file:step-1.root --fileout file:nano.root --no_exec
-```
-
-Data (UL17, MiniAODv1):
-
-```bash
-cmsDriver.py data2017 -n -1 --data --eventcontent NANOAOD --datatier NANOAOD --conditions 106X_dataRun2_v32 --step NANO --nThreads 1 --era Run2_2017,run2_nanoAOD_106Xv1 --customise PhysicsTools/NanoTuples/nanoTuples_cff.nanoTuples_customizeData --filein file:step-1.root --fileout file:nano.root --no_exec
-```
-
-MC (UL18, MiniAODv1):
-
-```bash
-cmsDriver.py mc2018 -n -1 --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --conditions 106X_upgrade2018_realistic_v15_L1v1 --step NANO --nThreads 1 --era Run2_2018,run2_nanoAOD_106Xv1 --customise PhysicsTools/NanoTuples/nanoTuples_cff.nanoTuples_customizeMC --filein file:step-1.root --fileout file:nano.root --no_exec
-```
-
-Data (UL18, MiniAODv1):
-
-```bash
-cmsDriver.py data2018abc -n -1 --data --eventcontent NANOAOD --datatier NANOAOD --conditions 106X_dataRun2_v32 --step NANO --nThreads 1 --era Run2_2018,run2_nanoAOD_106Xv1 --customise PhysicsTools/NanoTuples/nanoTuples_cff.nanoTuples_customizeData --filein file:step-1.root --fileout file:nano.root --no_exec
-```
-
+**Step 1**: generate the python config file with `generateConfigs.sh`.
 
 **Step 2**: use the `crab.py` script to submit the CRAB jobs:
 
 For MC:
 
-`python crab.py -p mc_NANO.py --site T2_CH_CERN -o /store/user/$USER/outputdir -t NanoTuples-[version] -i mc.txt --num-cores 1 --send-external -s FileBased -n 2 --work-area crab_projects_mc --dryrun`
+```bash
+python crab.py -p mc_2018UL_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2018/mc -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i mc/mc_2018.conf --num-cores 1 -s FileBased -n 2 --work-area crab_projects_2018UL --dryrun
 
-For data:
+python crab.py -p mc_2017UL_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2017/mc -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i mc/mc_2017.conf --num-cores 1 -s FileBased -n 2 --work-area crab_projects_2017UL --dryrun
 
-`python crab.py -p data_NANO.py --site T2_CH_CERN -o /store/user/$USER/outputdir -t NanoTuples-[version] -i data.txt --num-cores 1 --send-external -s EventAwareLumiBased -n 100000 -j [json_file] --work-area crab_projects_data --dryrun`
+python crab.py -p mc_2016ULpostVFP_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2016/mc -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i mc/mc_2016post.conf --num-cores 1 -s FileBased -n 2 --work-area crab_projects_2016ULpostVFP --dryrun
 
-
-A JSON file can be applied for data samples with the `-j` options.
-
-Golden JSON, 2016:
-
-```
-https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/Legacy_2016/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt
+python crab.py -p mc_2016ULpreVFP_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2016APV/mc -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i mc/mc_2016pre.conf --num-cores 1 -s FileBased -n 2 --work-area crab_projects_2016ULpreVFP --dryrun
 ```
 
-Golden JSON, 2017:
+For Data:
 
-```
-https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions17/13TeV/Legacy_2017/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt
+```bash
+python crab.py -p data_2018UL_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2018/data -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i data/data_2018.conf --num-cores 1 -s EventAwareLumiBased -n 100000 -j 'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions18/13TeV/Legacy_2018/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt' --work-area crab_projects_data_2018UL --dryrun
+
+python crab.py -p data_2017UL_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2017/data -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i data/data_2017.conf --num-cores 1 -s EventAwareLumiBased -n 100000 -j 'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions17/13TeV/Legacy_2017/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt' --work-area crab_projects_data_2017UL --dryrun
+
+python crab.py -p data_2016ULpostVFP_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2016/data -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i data/data_2016post.conf --num-cores 1 -s EventAwareLumiBased -n 100000 -j 'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions16/13TeV/Legacy_2016/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt' --work-area crab_projects_data_2016ULpostVFP --dryrun
+
+python crab.py -p data_2016ULpreVFP_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2016APV/data -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i data/data_2016pre.conf --num-cores 1 -s EventAwareLumiBased -n 100000 -j 'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions16/13TeV/Legacy_2016/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt' --work-area crab_projects_data_2016ULpreVFP --dryrun
 ```
 
-Golden JSON, 2018:
-
-```
-https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions18/13TeV/Legacy_2018/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt
-```
-
-These command will perform a "dryrun" to print out the CRAB configuration files. Please check everything is correct (e.g., the output path, version number, requested number of cores, etc.) before submitting the actual jobs. To actually submit the jobs to CRAB, just remove the `--dryrun` option at the end.
+These commands will perform a "dryrun" to print out the CRAB configuration files. Please check everything is correct (e.g., the output path, version number, requested number of cores, etc.) before submitting the actual jobs. To actually submit the jobs to CRAB, just remove the `--dryrun` option at the end.
 
 **Step 3**: check job status
 
@@ -226,5 +107,3 @@ More options of this `crab.py` script can be found with:
 ```bash
 ./crab.py -h
 ```
-
--->

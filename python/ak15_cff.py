@@ -4,20 +4,9 @@ from PhysicsTools.NanoAOD.common_cff import *
 # ---------------------------------------------------------
 
 
-def setupAK15(process, runOnMC=False, path=None, runParticleNet=False, runParticleNetMD=True, customAK15Taggers=[]):
+def setupAK15(process, runOnMC=False, path=None, runParticleNetMD=True, customAK15Taggers=[]):
     # recluster Puppi jets
-    bTagDiscriminators = [
-        'pfJetProbabilityBJetTags',
-        'pfCombinedInclusiveSecondaryVertexV2BJetTags',
-        'pfDeepCSVJetTags:probb',
-        'pfDeepCSVJetTags:probbb',
-    ]
-    subjetBTagDiscriminators = [
-        'pfJetProbabilityBJetTags',
-        'pfCombinedInclusiveSecondaryVertexV2BJetTags',
-        'pfDeepCSVJetTags:probb',
-        'pfDeepCSVJetTags:probbb',
-    ]
+    bTagDiscriminators = []
     JETCorrLevels = ['L2Relative', 'L3Absolute', 'L2L3Residual']
 
     from PhysicsTools.NanoTuples.jetToolbox_cff import jetToolbox
@@ -27,29 +16,25 @@ def setupAK15(process, runOnMC=False, path=None, runParticleNet=False, runPartic
                runOnMC=runOnMC,
                addNsub=True, maxTau=3,
                addSoftDrop=True, addSoftDropSubjets=True, subJETCorrPayload='AK4PFPuppi', subJETCorrLevels=JETCorrLevels,
-               bTagDiscriminators=bTagDiscriminators, subjetBTagDiscriminators=subjetBTagDiscriminators)
+               bTagDiscriminators=None, subjetBTagDiscriminators=None)
 
     if runOnMC:
         process.ak15GenJetsNoNu.jetPtMin = 100
         process.ak15GenJetsNoNuSoftDrop.jetPtMin = 100
 
-    # from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
-    from PhysicsTools.NanoTuples.jetTools import updateJetCollection as updateJetCollectionCustom
-    from RecoBTag.ONNXRuntime.pfParticleNet_cff import _pfMassDecorrelatedParticleNetJetTagsProbs as pfMassDecorrelatedParticleNetJetTagsProbs
+    from PhysicsTools.NanoTuples.taggingTools.jetCustomTools import updateJetCollection
+    from RecoBTag.ONNXRuntime.pfParticleNet_cff import _pfMassDecorrelatedParticleNetJetTagsProbs, _pfParticleNetMassRegressionOutputs
 
-    if runParticleNet:
-        bTagDiscriminators += pfParticleNetJetTagsProbs
     if runParticleNetMD:
-        bTagDiscriminators += pfMassDecorrelatedParticleNetJetTagsProbs
+        bTagDiscriminators += _pfMassDecorrelatedParticleNetJetTagsProbs + _pfParticleNetMassRegressionOutputs
     if len(customAK15Taggers) > 0:
         branchInfo = []
         for name in customAK15Taggers:
             disc, bchinfo = getCustomTaggerDiscriminatorsAK15(name)
             bTagDiscriminators += disc
             branchInfo += bchinfo
-    print(bTagDiscriminators)
 
-    updateJetCollectionCustom(
+    updateJetCollection(
         process,
         jetSource=cms.InputTag('packedPatJetsAK15PFPuppiSoftDrop'),
         rParam=1.5,
@@ -58,16 +43,12 @@ def setupAK15(process, runOnMC=False, path=None, runParticleNet=False, runPartic
         postfix='AK15ParticleNet',
     )
 
-    # configure DeepAK15
-    if runParticleNet:
-        process.pfParticleNetTagInfosAK15ParticleNet.jet_radius = 1.5
-        process.pfParticleNetJetTagsAK15ParticleNet.preprocess_json = 'none'
-        process.pfParticleNetJetTagsAK15ParticleNet.model_path = 'none'
-
     if runParticleNetMD:
         process.pfParticleNetTagInfosAK15ParticleNet.jet_radius = 1.5
         process.pfMassDecorrelatedParticleNetJetTagsAK15ParticleNet.preprocess_json = 'PhysicsTools/NanoTuples/data/ParticleNet-MD/ak15/V02d/preprocess.json'
         process.pfMassDecorrelatedParticleNetJetTagsAK15ParticleNet.model_path = 'PhysicsTools/NanoTuples/data/ParticleNet-MD/ak15/V02d/particle-net.onnx'
+        process.pfParticleNetMassRegressionJetTagsAK15ParticleNet.preprocess_json = 'PhysicsTools/NanoTuples/data/MassRegression/ak15/V01c/preprocess.json'
+        process.pfParticleNetMassRegressionJetTagsAK15ParticleNet.model_path = 'PhysicsTools/NanoTuples/data/MassRegression/ak15/V01c/particle_net_regression.onnx'
 
     # src
     srcJets = cms.InputTag('selectedUpdatedPatJetsAK15ParticleNet')
@@ -114,9 +95,6 @@ def setupAK15(process, runOnMC=False, path=None, runParticleNet=False, runPartic
             tau2=Var("userFloat('NjettinessAK15Puppi:tau2')", float, doc="Nsubjettiness (2 axis)", precision=10),
             tau3=Var("userFloat('NjettinessAK15Puppi:tau3')", float, doc="Nsubjettiness (3 axis)", precision=10),
             msoftdrop=Var("groomedMass()", float, doc="Corrected soft drop mass with PUPPI", precision=10),
-            btagCSVV2=Var("bDiscriminator('pfCombinedInclusiveSecondaryVertexV2BJetTags')", float, doc="pfCombinedInclusiveSecondaryVertexV2 b-tag discriminator (aka CSVV2)", precision=10),
-            btagDeepB=Var("bDiscriminator('pfDeepCSVJetTags:probb')+bDiscriminator('pfDeepCSVJetTags:probbb')", float, doc="DeepCSV b+bb tag discriminator", precision=10),
-            btagJP=Var("bDiscriminator('pfJetProbabilityBJetTags')", float, doc="pfJetProbabilityBJetTags b-tag discriminator (aka JP)", precision=10),
             nBHadrons=Var("jetFlavourInfo().getbHadrons().size()", int, doc="number of b-hadrons"),
             nCHadrons=Var("jetFlavourInfo().getcHadrons().size()", int, doc="number of c-hadrons"),
             subJetIdx1=Var("?nSubjetCollections()>0 && subjets().size()>0?subjets()[0].key():-1", int,
@@ -127,15 +105,8 @@ def setupAK15(process, runOnMC=False, path=None, runParticleNet=False, runPartic
     )
     process.ak15Table.variables.pt.precision = 10
 
-    # add nominal taggers
-    if runParticleNet:
-        for prob in pfParticleNetJetTagsProbs:
-            name = 'ParticleNet_' + prob.split(':')[1]
-            setattr(process.ak15Table.variables, name, Var("bDiscriminator('%s')" % prob, float, doc=prob, precision=-1))
-
-    # add mass-decorelated taggers
     if runParticleNetMD:
-        for prob in pfMassDecorrelatedParticleNetJetTagsProbs:
+        for prob in _pfMassDecorrelatedParticleNetJetTagsProbs + _pfMassDecorrelatedParticleNetJetTagsProbs:
             name = 'ParticleNetMD_' + prob.split(':')[1]
             setattr(process.ak15Table.variables, name, Var("bDiscriminator('%s')" % prob, float, doc=prob, precision=-1))
 
@@ -154,9 +125,6 @@ def setupAK15(process, runOnMC=False, path=None, runParticleNet=False, runPartic
         variables=cms.PSet(P4Vars,
             area=Var("jetArea()", float, doc="jet catchment area, for JECs", precision=10),
             rawFactor=Var("1.-jecFactor('Uncorrected')", float, doc="1 - Factor to get back to raw pT", precision=6),
-            btagDeepB=Var("bDiscriminator('pfDeepCSVJetTags:probb')+bDiscriminator('pfDeepCSVJetTags:probbb')", float, doc="DeepCSV b+bb tag discriminator", precision=10),
-            btagCSVV2=Var("bDiscriminator('pfCombinedInclusiveSecondaryVertexV2BJetTags')", float, doc=" pfCombinedInclusiveSecondaryVertexV2 b-tag discriminator (aka CSVV2)", precision=10),
-            btagJP=Var("bDiscriminator('pfJetProbabilityBJetTags')", float, doc="pfJetProbabilityBJetTags b-tag discriminator (aka JP)", precision=10),
             nBHadrons=Var("jetFlavourInfo().getbHadrons().size()", int, doc="number of b-hadrons"),
             nCHadrons=Var("jetFlavourInfo().getcHadrons().size()", int, doc="number of c-hadrons"),
         )
@@ -198,10 +166,6 @@ def setupAK15(process, runOnMC=False, path=None, runParticleNet=False, runPartic
 
         process.ak15Task.add(process.genJetAK15Table)
         process.ak15Task.add(process.genSubJetAK15Table)
-
-        ###### hack to avoid circular dependency ######
-        process.jetMC.remove(process.patJetPartons)
-        process.ak15Task.add(process.patJetPartons)
         ###############################################
 
     if path is None:
@@ -213,16 +177,16 @@ def setupAK15(process, runOnMC=False, path=None, runParticleNet=False, runPartic
 def getCustomTaggerDiscriminatorsAK15(name):
     customTaggersAvailableDict = {
         'InclParticleTransformerAK15V2': {
-            'cff_path': 'PhysicsTools.NanoTuples.hwwTagger.pfMassDecorrelatedInclParticleTransformerV2_cff',
-            'disc_name': '_pfMassDecorrelatedInclParticleTransformerAK15V2JetTagsAllSelected',
-            'nano_branch_name': 'inclParTMDV2',
+            'cff_path': 'PhysicsTools.NanoTuples.taggingTools.pfMassDecorrelatedInclParticleTransformerV2_cff',
+            'disc_name': '_pfMassDecorrelatedInclParticleTransformerAK15V2JetTagsAll',
+            'nano_branch_name': 'ParT',
         },
     }
     if name not in customTaggersAvailableDict:
         raise ValueError("the specified tagger '%s' does not exist." % name)
 
     cfg = customTaggersAvailableDict[name]
-    mod = __import__(cfg['cff_path'], globals(), locals(), [cfg['disc_name']], -1)
+    mod = __import__(cfg['cff_path'], globals(), locals(), [cfg['disc_name']])
     btagDiscriminators = getattr(mod, cfg['disc_name'])
 
     # variables to store in NanoAOD FatJet table
