@@ -45,6 +45,7 @@ git clone https://github.com/hqucms/NanoTuples.git PhysicsTools/NanoTuples -b de
 
 # compile
 scram b -j8
+cmsenv
 ```
 
 ## Production
