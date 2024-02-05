@@ -21,7 +21,7 @@ from RecoJets.JetProducers.AnomalousCellParameters_cfi import *
 from RecoJets.JetProducers.CATopJetParameters_cfi import *
 from PhysicsTools.PatAlgos.producersLayer1.patCandidates_cff import *
 from PhysicsTools.PatAlgos.selectionLayer1.jetSelector_cfi import selectedPatJets
-from PhysicsTools.PatAlgos.tools.jetTools import addJetCollection, updateJetCollection, switchJetCollection
+from PhysicsTools.PatAlgos.tools.jetTools import addJetCollection, updateJetCollection, setupPuppiForPackedPF
 from PhysicsTools.PatAlgos.tools.helpers import getPatAlgosToolsTask, addToProcessAndTask
 from PhysicsTools.NanoAOD.common_cff import *
 from collections import OrderedDict
@@ -245,25 +245,13 @@ def jetToolbox( proc, jetType, jetSequence, outputFile,
         tmpPfCandName = pfCand.lower()
         mod["PFJets"] = ""
         if 'Puppi' in PUMethod:
-            if ('puppi' in tmpPfCandName):
-                srcForPFJets = pfCand
-                if verbosity>=1: print('|---- jetToolBox: Not running puppi algorithm because keyword puppi was specified in nameNewPFCollection, but applying puppi corrections.')
-            else:
-                proc.load('CommonTools.PileupAlgos.Puppi_cff')
-                puppi.candName = cms.InputTag( pfCand )
-                if miniAOD:
-                    puppi.vertexName = cms.InputTag('offlineSlimmedPrimaryVertices')
-                    puppi.clonePackedCands = cms.bool(True)
-                _addProcessAndTask(proc, 'puppi', getattr(proc, 'puppi'))
-                jetSeq += getattr(proc, 'puppi' )
-                srcForPFJets = 'puppi'
-
+            srcForPFJets = pfCand
             from RecoJets.JetProducers.ak4PFJets_cfi import ak4PFJetsPuppi
             mod["PFJets"] = jetalgo+'PFJetsPuppi'+postFix
             _addProcessAndTask( proc, mod["PFJets"],
                             ak4PFJetsPuppi.clone(src=cms.InputTag(srcForPFJets),
-                                    applyWeight = False,
-                                    doAreaFastjet = True,
+                                    applyWeight = True,
+                                    srcWeights = setupPuppiForPackedPF(proc)[0],
                                     rParam = jetSize,
                                     jetAlgorithm = algorithm ) )
             jetSeq += getattr(proc, mod["PFJets"])

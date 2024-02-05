@@ -5,13 +5,11 @@ from PhysicsTools.NanoAOD.common_cff import Var
 def getCustomTaggerDiscriminatorsAK8(process, name):
     customTaggersAvailableDict = {
         'InclParticleTransformerV2': {
-            'cff_path': 'PhysicsTools.NanoTuples.taggingTools.pfMassDecorrelatedInclParticleTransformerV2_cff',
-            'disc_name': '_pfMassDecorrelatedInclParticleTransformerV2JetTagsAll',
+            'cff_path': 'RecoBTag.ONNXRuntime.pfParticleTransformerAK8_cff',
+            'disc_name': '_pfParticleTransformerAK8JetTagsAll',
             'nano_branch_name': 'ParT',
         },
     }
-    if name not in customTaggersAvailableDict:
-        raise ValueError("the specified tagger '%s' does not exist." % name)
 
     cfg = customTaggersAvailableDict[name]
     mod = __import__(cfg['cff_path'], globals(), locals(), [cfg['disc_name']])
@@ -28,7 +26,7 @@ def getCustomTaggerDiscriminatorsAK8(process, name):
 def addCustomTaggerAK8(process, customAK8Taggers):
     tag_discs = sum([getCustomTaggerDiscriminatorsAK8(process, name) for name in customAK8Taggers], [])
 
-    from PhysicsTools.NanoTuples.taggingTools.jetCustomTools import updateJetCollection
+    from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
     JETCorrLevels = ['L2Relative', 'L3Absolute', 'L2L3Residual']
     # inference the tagger score
     updateJetCollection(
@@ -39,5 +37,7 @@ def addCustomTaggerAK8(process, customAK8Taggers):
         btagDiscriminators=tag_discs,
         postfix='AK8WithCustomTagger',
     )
+    process.pfParticleTransformerAK8MDJetTagsAK8WithCustomTagger.preprocess_json = 'PhysicsTools/NanoTuples/data/InclParticleTransformer-MD/ak8/V02/preprocess_corr.json'
+    process.pfParticleTransformerAK8MDJetTagsAK8WithCustomTagger.model_path = 'PhysicsTools/NanoTuples/data/InclParticleTransformer-MD/ak8/V02/model.onnx'
     process.jetCorrFactorsAK8.src = "selectedUpdatedPatJetsAK8WithCustomTagger"
     process.updatedJetsAK8.jetSource = "selectedUpdatedPatJetsAK8WithCustomTagger"

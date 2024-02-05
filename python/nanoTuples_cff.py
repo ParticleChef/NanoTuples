@@ -6,7 +6,7 @@ from PhysicsTools.NanoTuples.pfcands_cff import addPFCands
 
 def nanoTuples_customizeCommon(process, runOnMC, addAK15=True, addPFcands=False,
                                customAK8Taggers=['InclParticleTransformerV2'],
-                               customAK15Taggers=['InclParticleTransformerAK15V2']):
+                               customAK15Taggers=['InclParticleTransformerV2']):
     pfcand_params = {'srcs': [], 'isPuppiJets': [], 'jetTables': []}
     if addAK15:
         setupAK15(process, runOnMC=runOnMC, runParticleNetMD=True, customAK15Taggers=customAK15Taggers)
