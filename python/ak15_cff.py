@@ -98,7 +98,7 @@ def setupAK15(process, runOnMC=False, path=None, runParticleNetMD=True, customAK
     process.ak15Table.variables.pt.precision = 10
 
     if runParticleNetMD:
-        for prob in _pfMassDecorrelatedParticleNetJetTagsProbs + _pfMassDecorrelatedParticleNetJetTagsProbs:
+        for prob in _pfMassDecorrelatedParticleNetJetTagsProbs + _pfParticleNetMassRegressionOutputs:
             name = 'ParticleNetMD_' + prob.split(':')[1]
             setattr(process.ak15Table.variables, name, Var("bDiscriminator('%s')" % prob, float, doc=prob, precision=-1))
 
@@ -181,7 +181,9 @@ def getCustomTaggerDiscriminatorsAK15(name):
 
     # variables to store in NanoAOD FatJet table
     branchInfo = []
-    for prob in btagDiscriminators: # include all raw scores and tagger discriminants
+    for prob in btagDiscriminators:
+        if 'probHW' in prob or 'probHZ' in prob:
+            continue
         name = cfg['nano_branch_name'] + '_' + prob.split(':')[1]
         branchInfo.append([name, Var("bDiscriminator('%s')" % prob, float, doc=prob, precision=-1)])
 

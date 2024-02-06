@@ -16,7 +16,9 @@ def getCustomTaggerDiscriminatorsAK8(process, name):
     btagDiscriminators = getattr(mod, cfg['disc_name'])
 
     # add variables to NanoAOD FatJet table
-    for prob in btagDiscriminators:  # include all raw scores and tagger discriminants
+    for prob in btagDiscriminators:
+        if 'probHW' in prob or 'probHZ' in prob:
+            continue
         name = cfg['nano_branch_name'] + '_' + prob.split(':')[1]
         setattr(process.fatJetTable.variables, name, Var("bDiscriminator('%s')" % prob, float, doc=prob, precision=-1))
 
