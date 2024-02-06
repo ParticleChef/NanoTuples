@@ -41,7 +41,7 @@ cmsenv
 git cms-merge-topic -u hqucms:dev/CMSSW_13_3_1_patch1/NanoAOD-puppiAK4
 
 # add custom repo for AK15/AK8 ParTv2
-git clone https://github.com/hqucms/NanoTuples.git PhysicsTools/NanoTuples -b dev/ParTv2/CMSSW_13_3_1_patch1
+git clone ssh://git@gitlab.cern.ch:7999/cms-hcc/NanoTuples.git PhysicsTools/NanoTuples -b dev/ParTv2/CMSSW_13_3_1_patch1
 
 # compile
 scram b -j8
@@ -66,25 +66,25 @@ source /cvmfs/cms.cern.ch/common/crab-setup.sh
 For MC:
 
 ```bash
-python crab.py -p mc_2018UL_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2018/mc -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i mc/mc_2018.conf --num-cores 1 -s FileBased -n 2 --work-area crab_projects_2018UL --dryrun
+crab.py -p mc_2018UL_NANO.py --max-memory 2500 --site T2_CH_CERN -o /store/group/cmst3/group/vhcc/NanoAOD/dev_AK15_ParTv2/2018/mc -t NanoTuples-06Feb2024_Run2UL_AK4Puppi_AK15_ParTv2 -i mc/mc_2018.conf --num-cores 1 -s FileBased -n 2 --work-area crab_projects_2018UL --dryrun
 
-python crab.py -p mc_2017UL_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2017/mc -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i mc/mc_2017.conf --num-cores 1 -s FileBased -n 2 --work-area crab_projects_2017UL --dryrun
+crab.py -p mc_2017UL_NANO.py --max-memory 2500 --site T2_CH_CERN -o /store/group/cmst3/group/vhcc/NanoAOD/dev_AK15_ParTv2/2017/mc -t NanoTuples-06Feb2024_Run2UL_AK4Puppi_AK15_ParTv2 -i mc/mc_2017.conf --num-cores 1 -s FileBased -n 2 --work-area crab_projects_2017UL --dryrun
 
-python crab.py -p mc_2016ULpostVFP_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2016/mc -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i mc/mc_2016post.conf --num-cores 1 -s FileBased -n 2 --work-area crab_projects_2016ULpostVFP --dryrun
+crab.py -p mc_2016ULpostVFP_NANO.py --max-memory 2500 --site T2_CH_CERN -o /store/group/cmst3/group/vhcc/NanoAOD/dev_AK15_ParTv2/2016/mc -t NanoTuples-06Feb2024_Run2UL_AK4Puppi_AK15_ParTv2 -i mc/mc_2016post.conf --num-cores 1 -s FileBased -n 2 --work-area crab_projects_2016ULpostVFP --dryrun
 
-python crab.py -p mc_2016ULpreVFP_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2016APV/mc -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i mc/mc_2016pre.conf --num-cores 1 -s FileBased -n 2 --work-area crab_projects_2016ULpreVFP --dryrun
+crab.py -p mc_2016ULpreVFP_NANO.py --max-memory 2500 --site T2_CH_CERN -o /store/group/cmst3/group/vhcc/NanoAOD/dev_AK15_ParTv2/2016APV/mc -t NanoTuples-06Feb2024_Run2UL_AK4Puppi_AK15_ParTv2 -i mc/mc_2016pre.conf --num-cores 1 -s FileBased -n 2 --work-area crab_projects_2016ULpreVFP --dryrun
 ```
 
 For Data:
 
 ```bash
-python crab.py -p data_2018UL_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2018/data -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i data/data_2018.conf --num-cores 1 -s EventAwareLumiBased -n 100000 -j 'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions18/13TeV/Legacy_2018/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt' --work-area crab_projects_data_2018UL --dryrun
+crab.py -p data_2018UL_NANO.py --max-memory 2500 --site T2_CH_CERN -o /store/group/cmst3/group/vhcc/NanoAOD/dev_AK15_ParTv2/2018/data -t NanoTuples-06Feb2024_Run2UL_AK4Puppi_AK15_ParTv2 -i data/data_2018.conf --num-cores 1 -s EventAwareLumiBased -n 100000 -j 'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions18/13TeV/Legacy_2018/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt' --work-area crab_projects_data_2018UL --dryrun
 
-python crab.py -p data_2017UL_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2017/data -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i data/data_2017.conf --num-cores 1 -s EventAwareLumiBased -n 100000 -j 'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions17/13TeV/Legacy_2017/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt' --work-area crab_projects_data_2017UL --dryrun
+crab.py -p data_2017UL_NANO.py --max-memory 2500 --site T2_CH_CERN -o /store/group/cmst3/group/vhcc/NanoAOD/dev_AK15_ParTv2/2017/data -t NanoTuples-06Feb2024_Run2UL_AK4Puppi_AK15_ParTv2 -i data/data_2017.conf --num-cores 1 -s EventAwareLumiBased -n 100000 -j 'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions17/13TeV/Legacy_2017/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt' --work-area crab_projects_data_2017UL --dryrun
 
-python crab.py -p data_2016ULpostVFP_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2016/data -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i data/data_2016post.conf --num-cores 1 -s EventAwareLumiBased -n 100000 -j 'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions16/13TeV/Legacy_2016/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt' --work-area crab_projects_data_2016ULpostVFP --dryrun
+crab.py -p data_2016ULpostVFP_NANO.py --max-memory 2500 --site T2_CH_CERN -o /store/group/cmst3/group/vhcc/NanoAOD/dev_AK15_ParTv2/2016/data -t NanoTuples-06Feb2024_Run2UL_AK4Puppi_AK15_ParTv2 -i data/data_2016post.conf --num-cores 1 -s EventAwareLumiBased -n 100000 -j 'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions16/13TeV/Legacy_2016/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt' --work-area crab_projects_data_2016ULpostVFP --dryrun
 
-python crab.py -p data_2016ULpreVFP_NANO.py --max-memory 2500 --site T3_US_FNALLPC -o /store/group/[outputpath]/2016APV/data -t [tagname, e.g., NanoAODv9_ParticleNetAK4] -i data/data_2016pre.conf --num-cores 1 -s EventAwareLumiBased -n 100000 -j 'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions16/13TeV/Legacy_2016/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt' --work-area crab_projects_data_2016ULpreVFP --dryrun
+crab.py -p data_2016ULpreVFP_NANO.py --max-memory 2500 --site T2_CH_CERN -o /store/group/cmst3/group/vhcc/NanoAOD/dev_AK15_ParTv2/2016APV/data -t NanoTuples-06Feb2024_Run2UL_AK4Puppi_AK15_ParTv2 -i data/data_2016pre.conf --num-cores 1 -s EventAwareLumiBased -n 100000 -j 'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions16/13TeV/Legacy_2016/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt' --work-area crab_projects_data_2016ULpreVFP --dryrun
 ```
 
 These commands will perform a "dryrun" to print out the CRAB configuration files. Please check everything is correct (e.g., the output path, version number, requested number of cores, etc.) before submitting the actual jobs. To actually submit the jobs to CRAB, just remove the `--dryrun` option at the end.
