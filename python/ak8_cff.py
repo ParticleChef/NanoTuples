@@ -31,9 +31,11 @@ def addCustomTaggerAK8(process, customAK8Taggers):
     from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
     JETCorrLevels = ['L2Relative', 'L3Absolute', 'L2L3Residual']
     # inference the tagger score
+    src = 'selectedUpdatedPatJetsAK8WithDeepInfo' if hasattr(
+        process, 'selectedUpdatedPatJetsAK8WithDeepInfo') else 'slimmedJetsAK8'
     updateJetCollection(
         process,
-        jetSource=cms.InputTag('selectedUpdatedPatJetsAK8WithDeepInfo'),
+        jetSource=cms.InputTag(src),
         rParam=0.8,
         jetCorrections=('AK8PFPuppi', cms.vstring(JETCorrLevels), 'None'),
         btagDiscriminators=tag_discs,
