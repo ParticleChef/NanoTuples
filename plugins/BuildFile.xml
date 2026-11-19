@@ -1,0 +1,25 @@
+<use name="FWCore/Framework"/>
+<use name="FWCore/ParameterSet"/>
+<use name="FWCore/Utilities"/>
+<use name="DataFormats/Candidate"/>
+<use name="DataFormats/PatCandidates"/>
+<use name="DataFormats/NanoAOD"/>
+<use name="DataFormats/VertexReco"/>
+<use name="DataFormats/BTauReco"/>
+<use name="DataFormats/Math"/>
+<use name="CommonTools/Utils"/>
+<use name="RecoBTag/FeatureTools"/>
+<use name="TrackingTools/Records"/>
+<use name="TrackingTools/TransientTrack"/>
+
+<!-- ParTv2 (InclParticleTransformer-MD) tag-info producer, transplanted from
+     hqucms:dev/CMSSW_13_3_1_patch1/NanoAOD-puppiAK4 (RecoBTag/FeatureTools) -->
+<library file="ParticleTransformerAK8TagInfoProducer.cc" name="PhysicsToolsNanoTuplesParTv2Plugins">
+  <flags EDM_PLUGIN="1"/>
+</library>
+
+<!-- Optional PF-candidate table (nanoTuples_customizeCommon(addPFcands=True)).
+     If this fails to compile against your release, delete this block and the .cc file. -->
+<library file="JetConstituentTableProducer.cc" name="PhysicsToolsNanoTuplesPFCandsPlugins">
+  <flags EDM_PLUGIN="1"/>
+</library>
